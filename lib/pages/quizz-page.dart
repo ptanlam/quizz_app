@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:quizz_app/components/quizz-button.dart';
+import 'package:quizz_app/repositories/questions-repositories.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
 
-import '../question.dart';
+var questionsRepository = QuestionsRepository();
 
 class QuizzPage extends StatefulWidget {
   QuizzPage({Key? key}) : super(key: key);
@@ -13,25 +15,8 @@ class QuizzPage extends StatefulWidget {
 class _QuizzPageState extends State<QuizzPage> {
   List<Widget> scoreKepper = [];
 
-  List<Question> questions = [
-    Question(
-      question: 'Cristiano Ronaldo is playing for Manchester Uniter',
-      answer: false,
-    ),
-    Question(
-      question: 'United States of America has 51 states',
-      answer: false,
-    ),
-    Question(
-      question: 'A slug\'s blood os green',
-      answer: true,
-    ),
-  ];
-
-  var questionNumber = 0;
-
   bool checkAnswer(bool answer) {
-    return questions[questionNumber].answer == answer;
+    return questionsRepository.getAnswerForQuestion() == answer;
   }
 
   Icon getIcon(bool isCorrect) {
@@ -47,11 +32,20 @@ class _QuizzPageState extends State<QuizzPage> {
   }
 
   void onAnswerPressed(bool answer) {
-    var isCorrect = checkAnswer(answer);
-
     setState(() {
+      if (questionsRepository.isFinished()) {
+        Alert(
+          context: context,
+          title: 'Finished',
+          desc: 'You\'ve reached the end of the quiz.',
+        ).show();
+        return;
+      }
+      print('hi');
+
+      var isCorrect = checkAnswer(answer);
       scoreKepper.add(getIcon(isCorrect));
-      questionNumber++;
+      questionsRepository.nextQuestion();
     });
   }
 
@@ -70,7 +64,7 @@ class _QuizzPageState extends State<QuizzPage> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 Text(
-                  questions[questionNumber].question,
+                  questionsRepository.getQuestion(),
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 23.0,
@@ -113,9 +107,3 @@ class _QuizzPageState extends State<QuizzPage> {
     );
   }
 }
-
-/**
- * 'Cristiano Ronaldo is playing for Manchester Uniter', false
- * 'United States of America has 51 states', false
- * 'A slug\'s blood os green', true
- */
